@@ -184,10 +184,9 @@ export const translateIndonesianImage = async (
 
 /**
  * 估算 API 调用成本（仅供参考）
- * @param imageSize 图片大小（字节）
  * @returns 估算的成本（美元）
  */
-export const estimateCost = (imageSize: number): number => {
+export const estimateCost = (): number => {
   // GPT-4o 定价：
   // 输入: $2.50 / 1M tokens
   // 输出: $10.00 / 1M tokens

@@ -65,11 +65,14 @@ const FlashcardPage: React.FC = () => {
   const handlePrevCard = () => {
     const unlearnedWords = wordsData.filter(word => word.status !== 'learned');
     if (unlearnedWords.length > 0) {
-      const currentUnlearnedIndex = unlearnedWords.findIndex(word => word.id === getCurrentWord().id);
-      const newUnlearnedIndex = (currentUnlearnedIndex - 1 + unlearnedWords.length) % unlearnedWords.length;
-      const newCardIndex = wordsData.findIndex(word => word.id === unlearnedWords[newUnlearnedIndex].id);
-      setCurrentCardIndex(newCardIndex);
-      setIsFlashcardFlipped(false);
+      const current = getCurrentWord();
+      if (current) {
+        const currentUnlearnedIndex = unlearnedWords.findIndex(word => word.id === current.id);
+        const newUnlearnedIndex = (currentUnlearnedIndex - 1 + unlearnedWords.length) % unlearnedWords.length;
+        const newCardIndex = wordsData.findIndex(word => word.id === unlearnedWords[newUnlearnedIndex].id);
+        setCurrentCardIndex(newCardIndex);
+        setIsFlashcardFlipped(false);
+      }
     }
   };
 
@@ -77,11 +80,14 @@ const FlashcardPage: React.FC = () => {
   const handleNextCard = () => {
     const unlearnedWords = wordsData.filter(word => word.status !== 'learned');
     if (unlearnedWords.length > 0) {
-      const currentUnlearnedIndex = unlearnedWords.findIndex(word => word.id === getCurrentWord().id);
-      const newUnlearnedIndex = (currentUnlearnedIndex + 1) % unlearnedWords.length;
-      const newCardIndex = wordsData.findIndex(word => word.id === unlearnedWords[newUnlearnedIndex].id);
-      setCurrentCardIndex(newCardIndex);
-      setIsFlashcardFlipped(false);
+      const current = getCurrentWord();
+      if (current) {
+        const currentUnlearnedIndex = unlearnedWords.findIndex(word => word.id === current.id);
+        const newUnlearnedIndex = (currentUnlearnedIndex + 1) % unlearnedWords.length;
+        const newCardIndex = wordsData.findIndex(word => word.id === unlearnedWords[newUnlearnedIndex].id);
+        setCurrentCardIndex(newCardIndex);
+        setIsFlashcardFlipped(false);
+      }
     }
   };
 
