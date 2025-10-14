@@ -1,0 +1,77 @@
+
+
+.pageWrapper {
+  background-color: #f8fafc;
+  min-height: 100vh;
+  padding-bottom: 64px; /* 为底部导航栏留出空间 */
+}
+
+.btnPrimary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transition: all 0.3s ease;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnPrimary:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+.btnSecondary {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  transition: all 0.3s ease;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnSecondary:hover {
+  background: linear-gradient(135deg, #475569 0%, #334155 100%);
+  transform: translateY(-1px);
+}
+
+.navItem {
+  transition: all 0.3s ease;
+}
+
+.navItem.active {
+  color: #2563eb;
+  border-bottom: 2px solid #2563eb;
+}
+
+.navItem:hover {
+  color: #2563eb;
+}
+
+.historyCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.historyCard:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.fadeIn {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+

@@ -1,0 +1,28 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 圆角矩形背景 -->
+  <rect width="512" height="512" rx="115" fill="url(#gradient)"/>
+  
+  <!-- 渐变定义 -->
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4F6FFF"/>
+      <stop offset="100%" stop-color="#6B47DC"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 翻译图标 (A 文 符号) -->
+  <g transform="translate(256, 256)">
+    <!-- 外框 -->
+    <rect x="-130" y="-70" width="260" height="140" rx="20" fill="white" stroke="white" stroke-width="8"/>
+    
+    <!-- 左侧 A 字母 -->
+    <text x="-80" y="30" font-family="Arial, sans-serif" font-size="90" font-weight="bold" fill="#4F6FFF" text-anchor="middle">A</text>
+    
+    <!-- 中间箭头 -->
+    <path d="M -10 -10 L 10 0 L -10 10" fill="none" stroke="#4F6FFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- 右侧中文字符 -->
+    <text x="70" y="30" font-family="SimHei, STHeiti, sans-serif" font-size="85" font-weight="bold" fill="#4F6FFF" text-anchor="middle">文</text>
+  </g>
+</svg>
+

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试 localStorage 存储</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .result {
+            background: #f3f4f6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 localStorage 存储测试</h1>
+    
+    <h2>1. 写入测试数据</h2>
+    <button onclick="writeTestData()">写入测试历史记录</button>
+    <button onclick="clearTestData()">清空测试数据</button>
+    
+    <h2>2. 读取数据</h2>
+    <button onclick="readData()">读取所有数据</button>
+    
+    <h2>3. 结果</h2>
+    <div id="result" class="result">点击按钮查看结果...</div>
+
+    <script>
+        function writeTestData() {
+            const testHistory = {
+                id: Date.now().toString(),
+                timestamp: new Date().toLocaleString('zh-CN'),
+                indonesian: 'Selamat pagi! Apa kabar?',
+                chinese: '早上好！你好吗？',
+                wordParses: [
+                    {
+                        word: 'selamat',
+                        meaning: '平安的、安全的',
+                        partOfSpeech: '形容词',
+                        root: 'selamat'
+                    }
+                ]
+            };
+
+            // 读取现有数据
+            const existing = localStorage.getItem('translation_history');
+            const history = existing ? JSON.parse(existing) : [];
+            
+            // 添加新数据
+            history.unshift(testHistory);
+            
+            // 保存
+            localStorage.setItem('translation_history', JSON.stringify(history));
+            
+            document.getElementById('result').textContent = '✅ 测试数据已写入！\n\n' + JSON.stringify(testHistory, null, 2);
+        }
+
+        function clearTestData() {
+            localStorage.removeItem('translation_history');
+            localStorage.removeItem('flashcard_words');
+            document.getElementById('result').textContent = '🗑️ 测试数据已清空！';
+        }
+
+        function readData() {
+            const history = localStorage.getItem('translation_history');
+            const flashcards = localStorage.getItem('flashcard_words');
+            
+            let result = '=== 历史记录 ===\n';
+            if (history) {
+                const data = JSON.parse(history);
+                result += `数量: ${data.length}\n`;
+                result += JSON.stringify(data, null, 2);
+            } else {
+                result += '❌ 无数据\n';
+            }
+            
+            result += '\n\n=== 单词卡片 ===\n';
+            if (flashcards) {
+                const data = JSON.parse(flashcards);
+                result += `数量: ${data.length}\n`;
+                result += JSON.stringify(data, null, 2);
+            } else {
+                result += '❌ 无数据\n';
+            }
+            
+            document.getElementById('result').textContent = result;
+        }
+
+        // 页面加载时自动读取
+        window.onload = readData;
+    </script>
+</body>
+</html>
+

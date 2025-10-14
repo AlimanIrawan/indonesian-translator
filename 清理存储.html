@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>清理 localStorage</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        button {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #dc2626;
+        }
+        .info {
+            color: #6b7280;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🧹 清理存储空间</h1>
+        
+        <div class="warning">
+            <strong>⚠️ 检测到存储问题</strong><br>
+            localStorage 存储已满，导致无法保存新数据。<br>
+            这是因为保存了图片的 base64 数据导致超出限额。
+        </div>
+        
+        <div class="info">
+            <strong>当前状态：</strong><br>
+            历史记录：<span id="historyCount">检测中...</span><br>
+            单词卡片：<span id="flashcardCount">检测中...</span>
+        </div>
+        
+        <div class="warning">
+            <strong>解决方案：</strong><br>
+            点击下方按钮清空所有历史数据。<br>
+            清空后，新的翻译将不再保存图片，只保存文本。
+        </div>
+        
+        <button onclick="clearAll()">清空所有数据并修复</button>
+        
+        <div id="success" class="success">
+            ✅ 清理成功！现在可以正常使用了。<br>
+            请关闭此页面，回到应用重新翻译。
+        </div>
+    </div>
+
+    <script>
+        function checkStorage() {
+            try {
+                const history = localStorage.getItem('translation_history');
+                const flashcards = localStorage.getItem('flashcard_words');
+                
+                const historyData = history ? JSON.parse(history) : [];
+                const flashcardData = flashcards ? JSON.parse(flashcards) : [];
+                
+                document.getElementById('historyCount').textContent = 
+                    `${historyData.length} 条记录 (${(history?.length || 0 / 1024).toFixed(2)} KB)`;
+                document.getElementById('flashcardCount').textContent = 
+                    `${flashcardData.length} 个单词 (${(flashcards?.length || 0 / 1024).toFixed(2)} KB)`;
+            } catch (e) {
+                document.getElementById('historyCount').textContent = '读取失败';
+                document.getElementById('flashcardCount').textContent = '读取失败';
+            }
+        }
+
+        function clearAll() {
+            if (confirm('确定要清空所有数据吗？\n\n清空后将无法恢复，但可以解决存储问题。')) {
+                try {
+                    localStorage.removeItem('translation_history');
+                    localStorage.removeItem('flashcard_words');
+                    
+                    // 重新初始化为空数组
+                    localStorage.setItem('translation_history', JSON.stringify([]));
+                    localStorage.setItem('flashcard_words', JSON.stringify([]));
+                    
+                    document.getElementById('success').style.display = 'block';
+                    checkStorage();
+                    
+                    setTimeout(() => {
+                        window.close();
+                    }, 3000);
+                } catch (e) {
+                    alert('清理失败：' + e.message);
+                }
+            }
+        }
+
+        window.onload = checkStorage;
+    </script>
+</body>
+</html>
+
