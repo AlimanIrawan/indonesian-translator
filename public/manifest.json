@@ -1,0 +1,24 @@
+{
+  "name": "印中图译通 - 印尼语翻译应用",
+  "short_name": "印中图译通",
+  "description": "印尼语图片翻译与词汇学习应用",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4F6FFF",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    }
+  ]
+}
+
