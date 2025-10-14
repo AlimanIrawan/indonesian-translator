@@ -13,6 +13,7 @@ const FlashcardPage: React.FC = () => {
 
   // 从本地存储读取单词数据
   const [wordsData, setWordsData] = useState<FlashcardItem[]>([]);
+  const [progress, setProgress] = useState({ total: 0, learned: 0, learning: 0, notLearned: 0, percentage: 0 });
 
   // 设置页面标题和加载数据
   useEffect(() => {
@@ -23,8 +24,8 @@ const FlashcardPage: React.FC = () => {
   }, []);
 
   // 加载单词数据
-  const loadWords = () => {
-    const cards = FlashcardService.getAll();
+  const loadWords = async () => {
+    const cards = await FlashcardService.getAll();
     const sortedWords = [...cards].sort((a, b) => {
       const statusOrder = { 'not-learned': 0, 'learning': 1, 'learned': 2 };
       return statusOrder[a.status] - statusOrder[b.status];
@@ -34,6 +35,10 @@ const FlashcardPage: React.FC = () => {
     // 定位到第一个未学会的单词
     const firstUnlearnedIndex = sortedWords.findIndex(word => word.status !== 'learned');
     setCurrentCardIndex(firstUnlearnedIndex !== -1 ? firstUnlearnedIndex : 0);
+    
+    // 更新学习进度
+    const progressData = await FlashcardService.getProgress();
+    setProgress(progressData);
   };
 
   // 获取当前单词
@@ -92,16 +97,16 @@ const FlashcardPage: React.FC = () => {
   };
 
   // 标记单词学习状态
-  const handleMarkLearned = () => {
+  const handleMarkLearned = async () => {
     const currentWord = getCurrentWord();
     if (!currentWord) return;
 
     const newStatus: FlashcardItem['status'] = 
       currentWord.status === 'learned' ? 'not-learned' : 'learned';
     
-    const success = FlashcardService.updateStatus(currentWord.id, newStatus);
+    const success = await FlashcardService.updateStatus(currentWord.id, newStatus);
     if (success) {
-      loadWords(); // 重新加载
+      await loadWords(); // 重新加载
       showSuccessToastMessage();
     }
   };
@@ -123,12 +128,12 @@ const FlashcardPage: React.FC = () => {
   };
 
   // 删除单词
-  const handleDeleteWord = (wordId: number, e: React.MouseEvent) => {
+  const handleDeleteWord = async (wordId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm('确定要删除这个单词吗？')) {
-      const success = FlashcardService.delete(wordId);
+      const success = await FlashcardService.delete(wordId);
       if (success) {
-        loadWords(); // 重新加载
+        await loadWords(); // 重新加载
         showSuccessToastMessage();
       }
     }
@@ -142,8 +147,6 @@ const FlashcardPage: React.FC = () => {
     }, 2000);
   };
 
-  // 获取学习进度
-  const progress = FlashcardService.getProgress();
   const currentWord = getCurrentWord();
 
   return (

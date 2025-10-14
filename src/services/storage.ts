@@ -1,6 +1,7 @@
 /**
- * 本地存储服务
- * 管理历史记录和单词卡片数据
+ * 存储服务
+ * 生产环境：使用 Vercel KV 云端存储
+ * 开发环境：使用 localStorage 本地存储
  */
 
 import { WordParse } from './openai';
@@ -30,15 +31,37 @@ export interface FlashcardItem extends WordParse {
 const HISTORY_KEY = 'translation_history';
 const FLASHCARD_KEY = 'flashcard_words';
 
+// 判断是否为生产环境
+const isProduction = import.meta.env.PROD;
+
+// API 调用辅助函数
+async function callStorageAPI(type: 'history' | 'flashcard', action: string, data?: any) {
+  const response = await fetch(`/api/storage?type=${type}&action=${action}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data || {}),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Storage API call failed');
+  }
+  
+  return await response.json();
+}
+
 /**
  * 历史记录服务
  */
 export class HistoryService {
   // 获取所有历史记录
-  static getAll(): HistoryItem[] {
+  static async getAll(): Promise<HistoryItem[]> {
     try {
-      const data = localStorage.getItem(HISTORY_KEY);
-      return data ? JSON.parse(data) : [];
+      if (isProduction) {
+        return await callStorageAPI('history', 'getAll');
+      } else {
+        const data = localStorage.getItem(HISTORY_KEY);
+        return data ? JSON.parse(data) : [];
+      }
     } catch (error) {
       console.error('读取历史记录失败:', error);
       return [];
@@ -46,41 +69,49 @@ export class HistoryService {
   }
 
   // 添加新的历史记录
-  static add(item: Omit<HistoryItem, 'id' | 'timestamp'>): HistoryItem {
-    const newItem: HistoryItem = {
-      ...item,
-      id: Date.now().toString(),
-      timestamp: new Date().toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    };
-
-    const history = this.getAll();
-    history.unshift(newItem); // 添加到开头
-    
-    // 限制历史记录数量（最多保存 100 条）
-    const limitedHistory = history.slice(0, 100);
-    
+  static async add(item: Omit<HistoryItem, 'id' | 'timestamp'>): Promise<HistoryItem> {
     try {
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(limitedHistory));
+      if (isProduction) {
+        return await callStorageAPI('history', 'add', { item });
+      } else {
+        const newItem: HistoryItem = {
+          ...item,
+          id: Date.now().toString(),
+          timestamp: new Date().toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+        };
+
+        const history = await this.getAll();
+        history.unshift(newItem);
+        
+        const limitedHistory = history.slice(0, 100);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(limitedHistory));
+
+        return newItem;
+      }
     } catch (error) {
       console.error('保存历史记录失败:', error);
+      throw error;
     }
-
-    return newItem;
   }
 
   // 删除单条历史记录
-  static delete(id: string): boolean {
+  static async delete(id: string): Promise<boolean> {
     try {
-      const history = this.getAll();
-      const filteredHistory = history.filter(item => item.id !== id);
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(filteredHistory));
-      return true;
+      if (isProduction) {
+        await callStorageAPI('history', 'delete', { id });
+        return true;
+      } else {
+        const history = await this.getAll();
+        const filteredHistory = history.filter(item => item.id !== id);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(filteredHistory));
+        return true;
+      }
     } catch (error) {
       console.error('删除历史记录失败:', error);
       return false;
@@ -88,10 +119,15 @@ export class HistoryService {
   }
 
   // 清空所有历史记录
-  static clear(): boolean {
+  static async clear(): Promise<boolean> {
     try {
-      localStorage.setItem(HISTORY_KEY, JSON.stringify([]));
-      return true;
+      if (isProduction) {
+        await callStorageAPI('history', 'clear');
+        return true;
+      } else {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify([]));
+        return true;
+      }
     } catch (error) {
       console.error('清空历史记录失败:', error);
       return false;
@@ -99,8 +135,8 @@ export class HistoryService {
   }
 
   // 搜索历史记录
-  static search(keyword: string): HistoryItem[] {
-    const history = this.getAll();
+  static async search(keyword: string): Promise<HistoryItem[]> {
+    const history = await this.getAll();
     if (!keyword) return history;
 
     const lowerKeyword = keyword.toLowerCase();
@@ -116,10 +152,14 @@ export class HistoryService {
  */
 export class FlashcardService {
   // 获取所有单词卡片
-  static getAll(): FlashcardItem[] {
+  static async getAll(): Promise<FlashcardItem[]> {
     try {
-      const data = localStorage.getItem(FLASHCARD_KEY);
-      return data ? JSON.parse(data) : [];
+      if (isProduction) {
+        return await callStorageAPI('flashcard', 'getAll');
+      } else {
+        const data = localStorage.getItem(FLASHCARD_KEY);
+        return data ? JSON.parse(data) : [];
+      }
     } catch (error) {
       console.error('读取单词卡片失败:', error);
       return [];
@@ -127,90 +167,108 @@ export class FlashcardService {
   }
 
   // 添加新单词（从词汇解析转换）
-  static addFromWordParse(
+  static async addFromWordParse(
     wordParse: WordParse,
     example: string,
     exampleTranslation: string
-  ): FlashcardItem {
-    const cards = this.getAll();
-    
-    // 检查是否已存在
-    const existing = cards.find(card => card.word === wordParse.word);
-    if (existing) {
-      return existing;
-    }
-
-    const newCard: FlashcardItem = {
-      ...wordParse,
-      id: Date.now() + Math.random(), // 使用时间戳 + 随机数确保唯一
-      pronunciation: this.generatePronunciation(wordParse.word),
-      example,
-      exampleTranslation,
-      status: 'not-learned',
-      addedAt: new Date().toISOString(),
-    };
-
-    cards.push(newCard);
-    
+  ): Promise<FlashcardItem> {
     try {
-      localStorage.setItem(FLASHCARD_KEY, JSON.stringify(cards));
+      if (isProduction) {
+        return await callStorageAPI('flashcard', 'add', { wordParse, example, exampleTranslation });
+      } else {
+        const cards = await this.getAll();
+        
+        const existing = cards.find(card => card.word === wordParse.word);
+        if (existing) {
+          return existing;
+        }
+
+        const newCard: FlashcardItem = {
+          ...wordParse,
+          id: Date.now() + Math.random(),
+          pronunciation: this.generatePronunciation(wordParse.word),
+          example,
+          exampleTranslation,
+          status: 'not-learned',
+          addedAt: new Date().toISOString(),
+        };
+
+        cards.push(newCard);
+        localStorage.setItem(FLASHCARD_KEY, JSON.stringify(cards));
+
+        return newCard;
+      }
     } catch (error) {
       console.error('保存单词卡片失败:', error);
+      throw error;
     }
-
-    return newCard;
   }
 
   // 批量添加单词（从翻译结果）
-  static addBatch(
+  static async addBatch(
     wordParses: WordParse[],
     indonesianText: string,
     chineseTranslation: string
-  ): FlashcardItem[] {
-    const newCards: FlashcardItem[] = [];
+  ): Promise<FlashcardItem[]> {
+    try {
+      if (isProduction) {
+        return await callStorageAPI('flashcard', 'addBatch', { 
+          wordParses, 
+          indonesianText, 
+          chineseTranslation 
+        });
+      } else {
+        const newCards: FlashcardItem[] = [];
 
-    // 分割印尼语和中文为句子数组
-    const indoSentences = indonesianText.split(/[.!?。！？]/).filter(s => s.trim());
-    const cnSentences = chineseTranslation.split(/[.!?。！？]/).filter(s => s.trim());
+        const indoSentences = indonesianText.split(/[.!?。！？]/).filter(s => s.trim());
+        const cnSentences = chineseTranslation.split(/[.!?。！？]/).filter(s => s.trim());
 
-    wordParses.forEach(wordParse => {
-      // 尝试从原文中找到包含该单词的句子作为例句
-      const sentenceIndex = indoSentences.findIndex(s => 
-        s.toLowerCase().includes(wordParse.word.toLowerCase())
-      );
-      
-      const exampleSentence = sentenceIndex >= 0 
-        ? indoSentences[sentenceIndex].trim() 
-        : wordParse.word; // 如果找不到，就用单词本身
-      
-      // 使用对应索引的中文句子，如果没有就用单词的意思
-      const exampleTranslation = sentenceIndex >= 0 && cnSentences[sentenceIndex]
-        ? cnSentences[sentenceIndex].trim()
-        : wordParse.meaning;
+        for (const wordParse of wordParses) {
+          const sentenceIndex = indoSentences.findIndex(s => 
+            s.toLowerCase().includes(wordParse.word.toLowerCase())
+          );
+          
+          const exampleSentence = sentenceIndex >= 0 
+            ? indoSentences[sentenceIndex].trim() 
+            : wordParse.word;
+          
+          const exampleTranslation = sentenceIndex >= 0 && cnSentences[sentenceIndex]
+            ? cnSentences[sentenceIndex].trim()
+            : wordParse.meaning;
 
-      const card = this.addFromWordParse(
-        wordParse,
-        exampleSentence,
-        exampleTranslation
-      );
-      
-      newCards.push(card);
-    });
+          const card = await this.addFromWordParse(
+            wordParse,
+            exampleSentence,
+            exampleTranslation
+          );
+          
+          newCards.push(card);
+        }
 
-    return newCards;
+        return newCards;
+      }
+    } catch (error) {
+      console.error('批量添加单词失败:', error);
+      return [];
+    }
   }
 
   // 更新单词状态
-  static updateStatus(id: number, status: FlashcardItem['status']): boolean {
+  static async updateStatus(id: number, status: FlashcardItem['status']): Promise<boolean> {
     try {
-      const cards = this.getAll();
-      const card = cards.find(c => c.id === id);
-      if (card) {
-        card.status = status;
-        localStorage.setItem(FLASHCARD_KEY, JSON.stringify(cards));
+      if (isProduction) {
+        await callStorageAPI('flashcard', 'updateStatus', { id, status });
         return true;
+      } else {
+        const cards = await this.getAll();
+        const card = cards.find(c => c.id === id);
+        if (card) {
+          card.status = status;
+          localStorage.setItem(FLASHCARD_KEY, JSON.stringify(cards));
+          return true;
+        }
+        return false;
       }
-      return false;
     } catch (error) {
       console.error('更新单词状态失败:', error);
       return false;
@@ -218,12 +276,17 @@ export class FlashcardService {
   }
 
   // 删除单词卡片
-  static delete(id: number): boolean {
+  static async delete(id: number): Promise<boolean> {
     try {
-      const cards = this.getAll();
-      const filtered = cards.filter(c => c.id !== id);
-      localStorage.setItem(FLASHCARD_KEY, JSON.stringify(filtered));
-      return true;
+      if (isProduction) {
+        await callStorageAPI('flashcard', 'delete', { id });
+        return true;
+      } else {
+        const cards = await this.getAll();
+        const filtered = cards.filter(c => c.id !== id);
+        localStorage.setItem(FLASHCARD_KEY, JSON.stringify(filtered));
+        return true;
+      }
     } catch (error) {
       console.error('删除单词卡片失败:', error);
       return false;
@@ -232,19 +295,18 @@ export class FlashcardService {
 
   // 生成简单的发音标注（可以后续优化）
   private static generatePronunciation(word: string): string {
-    // 这里可以接入发音 API，暂时返回简单格式
     return `/${word}/`;
   }
 
   // 获取学习进度
-  static getProgress(): {
+  static async getProgress(): Promise<{
     total: number;
     learned: number;
     learning: number;
     notLearned: number;
     percentage: number;
-  } {
-    const cards = this.getAll();
+  }> {
+    const cards = await this.getAll();
     const total = cards.length;
     const learned = cards.filter(c => c.status === 'learned').length;
     const learning = cards.filter(c => c.status === 'learning').length;

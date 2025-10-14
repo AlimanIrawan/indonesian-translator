@@ -29,10 +29,10 @@ const HistoryPage: React.FC = () => {
   }, []);
 
   // 加载历史记录数据
-  const loadHistory = () => {
+  const loadHistory = async () => {
     const history = searchText 
-      ? HistoryService.search(searchText)
-      : HistoryService.getAll();
+      ? await HistoryService.search(searchText)
+      : await HistoryService.getAll();
     console.log('加载历史记录:', history.length, '条');
     setHistoryItems(history);
   };
@@ -53,19 +53,19 @@ const HistoryPage: React.FC = () => {
     setSelectedItemId(null); // 清空是删除所有
   };
 
-  const handleConfirmClear = () => {
+  const handleConfirmClear = async () => {
     if (selectedItemId) {
       // 删除单条记录
-      const success = HistoryService.delete(selectedItemId);
+      const success = await HistoryService.delete(selectedItemId);
       if (success) {
-        loadHistory(); // 重新加载
+        await loadHistory(); // 重新加载
         showSuccessMessage();
       }
     } else {
       // 清空所有记录
-      const success = HistoryService.clear();
+      const success = await HistoryService.clear();
       if (success) {
-        loadHistory(); // 重新加载
+        await loadHistory(); // 重新加载
         showSuccessMessage();
       }
     }

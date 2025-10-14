@@ -115,7 +115,7 @@ const HomePage: React.FC = () => {
       setWordParses(result.wordParses);
       
       // 保存到历史记录（不保存图片以节省空间）
-      const savedHistory = HistoryService.add({
+      const savedHistory = await HistoryService.add({
         indonesian: result.indonesianText,
         chinese: result.chineseTranslation,
         wordParses: result.wordParses,
@@ -125,7 +125,7 @@ const HomePage: React.FC = () => {
 
       // 保存到单词卡片
       if (result.wordParses.length > 0) {
-        const savedCards = FlashcardService.addBatch(
+        const savedCards = await FlashcardService.addBatch(
           result.wordParses,
           result.indonesianText,
           result.chineseTranslation
@@ -134,8 +134,8 @@ const HomePage: React.FC = () => {
       }
       
       // 验证保存
-      const allHistory = HistoryService.getAll();
-      const allCards = FlashcardService.getAll();
+      const allHistory = await HistoryService.getAll();
+      const allCards = await FlashcardService.getAll();
       console.log('📊 当前历史记录总数:', allHistory.length);
       console.log('📊 当前单词卡片总数:', allCards.length);
       
