@@ -66,17 +66,17 @@ export default function ImageCropper({ image, onCropComplete, onCancel }: ImageC
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {/* 顶部操作栏 */}
-      <div className="bg-gray-900 text-white p-4 flex justify-between items-center">
+      <div className="bg-gray-900 text-white p-4 flex justify-between items-center relative z-10">
         <button
           onClick={onCancel}
-          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex-shrink-0"
         >
           取消
         </button>
-        <h3 className="text-lg font-semibold">裁剪图片</h3>
+        <h3 className="text-lg font-semibold flex-1 text-center mx-4">裁剪图片</h3>
         <button
           onClick={handleCropConfirm}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex-shrink-0"
         >
           确认裁剪
         </button>
@@ -110,10 +110,26 @@ export default function ImageCropper({ image, onCropComplete, onCancel }: ImageC
         </ReactCrop>
       </div>
 
-      {/* 底部提示 */}
-      <div className="bg-gray-900 text-white text-center py-3">
-        <p className="text-sm mb-1">💡 拖动边框或角落调整裁剪区域</p>
-        <p className="text-xs text-gray-400">拖动中间移动裁剪框</p>
+      {/* 底部操作栏 */}
+      <div className="bg-gray-900 text-white p-4 relative z-10">
+        <div className="text-center mb-3">
+          <p className="text-sm mb-1">💡 拖动边框或角落调整裁剪区域</p>
+          <p className="text-xs text-gray-400">拖动中间移动裁剪框</p>
+        </div>
+        <div className="flex gap-3 max-w-md mx-auto">
+          <button
+            onClick={onCancel}
+            className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors font-medium"
+          >
+            取消
+          </button>
+          <button
+            onClick={handleCropConfirm}
+            className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors font-medium"
+          >
+            确认裁剪
+          </button>
+        </div>
       </div>
     </div>
   );
