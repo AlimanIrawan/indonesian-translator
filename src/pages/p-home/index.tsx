@@ -421,7 +421,7 @@ const HomePage: React.FC = () => {
                   <i className="fas fa-copy"></i>
                 </button>
               </div>
-              <div className="text-text-primary leading-relaxed whitespace-pre-wrap">
+              <div className="text-text-primary leading-relaxed whitespace-pre-wrap select-text" style={{ userSelect: 'text', WebkitUserSelect: 'text' }}>
                 {indonesianText}
               </div>
             </div>
@@ -440,12 +440,13 @@ const HomePage: React.FC = () => {
                   <i className="fas fa-copy"></i>
                 </button>
               </div>
-              <div className="text-text-primary leading-relaxed whitespace-pre-wrap">
+              <div className="text-text-primary leading-relaxed whitespace-pre-wrap select-text" style={{ userSelect: 'text', WebkitUserSelect: 'text' }}>
                 {chineseTranslation}
               </div>
             </div>
 
-            {/* 单词解析 */}
+            {/* 单词解析 - 仅在有词汇时显示 */}
+            {wordParses.length > 0 && (
             <div className={`${styles.resultCard} ${styles.fadeIn} p-6`}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-text-primary flex items-center space-x-2">
@@ -483,6 +484,7 @@ const HomePage: React.FC = () => {
                 )}
               </div>
             </div>
+            )}
 
             {/* 结果操作区 */}
             <div className="bg-white rounded-2xl shadow-card p-4">
