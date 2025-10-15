@@ -20,21 +20,25 @@ const createCroppedImage = (
     throw new Error('Canvas context not available');
   }
 
-  // 设置 canvas 大小为裁剪区域大小
-  canvas.width = crop.width;
-  canvas.height = crop.height;
+  // 计算缩放比例
+  const scaleX = image.naturalWidth / image.width;
+  const scaleY = image.naturalHeight / image.height;
 
-  // 绘制裁剪后的图片
+  // 设置 canvas 大小为裁剪区域的实际像素大小
+  canvas.width = crop.width * scaleX;
+  canvas.height = crop.height * scaleY;
+
+  // 绘制裁剪后的图片（使用原始图片尺寸）
   ctx.drawImage(
     image,
-    crop.x,
-    crop.y,
-    crop.width,
-    crop.height,
+    crop.x * scaleX,
+    crop.y * scaleY,
+    crop.width * scaleX,
+    crop.height * scaleY,
     0,
     0,
-    crop.width,
-    crop.height
+    canvas.width,
+    canvas.height
   );
 
   // 转换为 base64
