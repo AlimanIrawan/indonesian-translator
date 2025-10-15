@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import styles from './styles.module.css';
 import { translateIndonesianImage, type WordParse, type TranslationResult } from '../../services/openai';
 import { HistoryService, FlashcardService } from '../../services/storage';
+import ImageCropper from '../../components/ImageCropper';
 
 const HomePage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -16,6 +17,8 @@ const HomePage: React.FC = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showSaveSuccessToast, setShowSaveSuccessToast] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
 
   // 翻译结果数据
   const [indonesianText, setIndonesianText] = useState<string>('');
@@ -51,11 +54,24 @@ const HomePage: React.FC = () => {
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
-          setSelectedImage(e.target.result as string);
+          const imageData = e.target.result as string;
+          setOriginalImage(imageData);
+          setShowCropper(true); // 显示裁剪界面
         }
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleCropComplete = (croppedImage: string) => {
+    setSelectedImage(croppedImage);
+    setShowCropper(false);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setOriginalImage(null);
+    setSelectedFile(null);
   };
 
   const handleUploadAreaClick = () => {
@@ -250,6 +266,14 @@ const HomePage: React.FC = () => {
 
   return (
     <div className={styles.pageWrapper}>
+      {/* 图片裁剪界面 */}
+      {showCropper && originalImage && (
+        <ImageCropper
+          image={originalImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
+      )}
       {/* 顶部导航栏 */}
       <header className="bg-white shadow-sm border-b border-border-light sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
