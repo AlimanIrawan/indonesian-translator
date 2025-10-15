@@ -56,7 +56,7 @@ const createCroppedImage = async (
 
 export default function ImageCropper({ image, onCropComplete, onCancel }: ImageCropperProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom] = useState(1); // 固定缩放为 1
+  const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   const onCropChange = useCallback((location: { x: number; y: number }) => {
@@ -106,7 +106,8 @@ export default function ImageCropper({ image, onCropComplete, onCancel }: ImageC
           aspect={undefined} // 自由裁剪
           onCropChange={onCropChange}
           onCropComplete={onCropAreaChange}
-          zoomWithScroll={false}
+          onZoomChange={setZoom}
+          zoomWithScroll={true}
           showGrid={true}
           style={{
             containerStyle: {
@@ -119,9 +120,29 @@ export default function ImageCropper({ image, onCropComplete, onCancel }: ImageC
         />
       </div>
 
-      {/* 底部提示 */}
-      <div className="bg-gray-900 text-white text-center py-3 text-sm">
-        拖动裁剪框选择需要翻译的区域
+      {/* 底部缩放控制 */}
+      <div className="bg-gray-900 text-white px-6 py-4">
+        <div className="max-w-md mx-auto">
+          <div className="flex items-center space-x-4">
+            <i className="fas fa-search-minus text-lg"></i>
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.1}
+              value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
+              className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((zoom - 1) / 2) * 100}%, #4b5563 ${((zoom - 1) / 2) * 100}%, #4b5563 100%)`
+              }}
+            />
+            <i className="fas fa-search-plus text-lg"></i>
+          </div>
+          <p className="text-center text-sm mt-2 text-gray-400">
+            拖动图片或缩放调整裁剪区域
+          </p>
+        </div>
       </div>
     </div>
   );
