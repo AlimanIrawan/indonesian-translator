@@ -1,12 +1,6 @@
-import { useState, useCallback } from 'react';
-import Cropper from 'react-easy-crop';
-
-interface Area {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+import { useState, useRef } from 'react';
+import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 interface ImageCropperProps {
   image: string;
@@ -15,17 +9,10 @@ interface ImageCropperProps {
 }
 
 // 创建裁剪后的图片
-const createCroppedImage = async (
-  imageSrc: string,
-  pixelCrop: Area
-): Promise<string> => {
-  const image = new Image();
-  image.src = imageSrc;
-
-  await new Promise((resolve) => {
-    image.onload = resolve;
-  });
-
+const createCroppedImage = (
+  image: HTMLImageElement,
+  crop: PixelCrop
+): string => {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
 
@@ -34,20 +21,20 @@ const createCroppedImage = async (
   }
 
   // 设置 canvas 大小为裁剪区域大小
-  canvas.width = pixelCrop.width;
-  canvas.height = pixelCrop.height;
+  canvas.width = crop.width;
+  canvas.height = crop.height;
 
   // 绘制裁剪后的图片
   ctx.drawImage(
     image,
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
+    crop.x,
+    crop.y,
+    crop.width,
+    crop.height,
     0,
     0,
-    pixelCrop.width,
-    pixelCrop.height
+    crop.width,
+    crop.height
   );
 
   // 转换为 base64
@@ -55,28 +42,26 @@ const createCroppedImage = async (
 };
 
 export default function ImageCropper({ image, onCropComplete, onCancel }: ImageCropperProps) {
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [crop, setCrop] = useState<Crop>({
+    unit: '%',
+    x: 10,
+    y: 10,
+    width: 80,
+    height: 80,
+  });
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
 
-  const onCropChange = useCallback((location: { x: number; y: number }) => {
-    setCrop(location);
-  }, []);
-
-  const onCropAreaChange = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
-
-  const handleCropConfirm = useCallback(async () => {
-    if (!croppedAreaPixels) return;
+  const handleCropConfirm = () => {
+    if (!imgRef.current || !completedCrop) return;
 
     try {
-      const croppedImage = await createCroppedImage(image, croppedAreaPixels);
+      const croppedImage = createCroppedImage(imgRef.current, completedCrop);
       onCropComplete(croppedImage);
     } catch (error) {
       console.error('裁剪失败:', error);
     }
-  }, [image, croppedAreaPixels, onCropComplete]);
+  };
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
@@ -98,53 +83,38 @@ export default function ImageCropper({ image, onCropComplete, onCancel }: ImageC
       </div>
 
       {/* 裁剪区域 */}
-      <div className="flex-1 relative">
-        <Cropper
-          image={image}
+      <div className="flex-1 overflow-auto flex items-center justify-center p-4 bg-black">
+        <ReactCrop
           crop={crop}
-          zoom={zoom}
-          aspect={undefined} // 自由裁剪
-          onCropChange={onCropChange}
-          onCropComplete={onCropAreaChange}
-          onZoomChange={setZoom}
-          zoomWithScroll={true}
-          showGrid={true}
-          style={{
-            containerStyle: {
-              backgroundColor: '#000',
-            },
-            cropAreaStyle: {
-              border: '2px solid #fff',
-            },
-          }}
-        />
+          onChange={(c) => setCrop(c)}
+          onComplete={(c) => setCompletedCrop(c)}
+          className="max-w-full max-h-full"
+        >
+          <img
+            ref={imgRef}
+            src={image}
+            alt="裁剪预览"
+            className="max-w-full max-h-full object-contain"
+            onLoad={(e) => {
+              const { width, height } = e.currentTarget;
+              // 初始化裁剪区域（居中，80% 大小）
+              setCompletedCrop({
+                unit: 'px',
+                x: width * 0.1,
+                y: height * 0.1,
+                width: width * 0.8,
+                height: height * 0.8,
+              });
+            }}
+          />
+        </ReactCrop>
       </div>
 
-      {/* 底部缩放控制 */}
-      <div className="bg-gray-900 text-white px-6 py-4">
-        <div className="max-w-md mx-auto">
-          <div className="flex items-center space-x-4">
-            <i className="fas fa-search-minus text-lg"></i>
-            <input
-              type="range"
-              min={1}
-              max={3}
-              step={0.1}
-              value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-              style={{
-                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((zoom - 1) / 2) * 100}%, #4b5563 ${((zoom - 1) / 2) * 100}%, #4b5563 100%)`
-              }}
-            />
-            <i className="fas fa-search-plus text-lg"></i>
-          </div>
-          <p className="text-center text-sm mt-2 text-gray-400">
-            拖动图片或缩放调整裁剪区域
-          </p>
-        </div>
+      {/* 底部提示 */}
+      <div className="bg-gray-900 text-white text-center py-3">
+        <p className="text-sm mb-1">💡 拖动边框或角落调整裁剪区域</p>
+        <p className="text-xs text-gray-400">拖动中间移动裁剪框</p>
       </div>
     </div>
   );
 }
-
