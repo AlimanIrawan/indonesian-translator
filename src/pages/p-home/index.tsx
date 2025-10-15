@@ -68,6 +68,12 @@ const HomePage: React.FC = () => {
     setShowCropper(false);
   };
 
+  const handleCropSkip = () => {
+    // 跳过裁剪，直接使用原图
+    setSelectedImage(originalImage);
+    setShowCropper(false);
+  };
+
   const handleCropCancel = () => {
     setShowCropper(false);
     setOriginalImage(null);
@@ -271,6 +277,7 @@ const HomePage: React.FC = () => {
         <ImageCropper
           image={originalImage}
           onCropComplete={handleCropComplete}
+          onSkip={handleCropSkip}
           onCancel={handleCropCancel}
         />
       )}

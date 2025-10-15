@@ -5,6 +5,7 @@ import 'react-image-crop/dist/ReactCrop.css';
 interface ImageCropperProps {
   image: string;
   onCropComplete: (croppedImage: string) => void;
+  onSkip: () => void;
   onCancel: () => void;
 }
 
@@ -45,7 +46,7 @@ const createCroppedImage = (
   return canvas.toDataURL('image/jpeg', 0.9);
 };
 
-export default function ImageCropper({ image, onCropComplete, onCancel }: ImageCropperProps) {
+export default function ImageCropper({ image, onCropComplete, onSkip, onCancel }: ImageCropperProps) {
   const [crop, setCrop] = useState<Crop>({
     unit: '%',
     x: 10,
@@ -118,14 +119,20 @@ export default function ImageCropper({ image, onCropComplete, onCancel }: ImageC
       <div className="bg-gray-900 text-white p-4 relative z-10">
         <div className="text-center mb-3">
           <p className="text-sm mb-1">💡 拖动边框或角落调整裁剪区域</p>
-          <p className="text-xs text-gray-400">拖动中间移动裁剪框</p>
+          <p className="text-xs text-gray-400">拖动中间移动裁剪框 · 或直接跳过裁剪</p>
         </div>
-        <div className="flex gap-3 max-w-md mx-auto">
+        <div className="flex gap-2 max-w-md mx-auto">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors font-medium"
+            className="px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors font-medium"
           >
             取消
+          </button>
+          <button
+            onClick={onSkip}
+            className="flex-1 px-4 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-colors font-medium"
+          >
+            跳过裁剪
           </button>
           <button
             onClick={handleCropConfirm}
