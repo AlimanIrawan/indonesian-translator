@@ -1,5 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { kv } from '@vercel/kv';
+import { createClient } from '@vercel/kv';
+
+// 创建 KV 客户端，显式指定环境变量
+const kv = createClient({
+  url: process.env.KV_KV_REST_API_URL!,
+  token: process.env.KV_KV_REST_API_TOKEN!,
+});
 
 // 数据类型定义
 interface WordParse {
