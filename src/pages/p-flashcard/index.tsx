@@ -13,6 +13,8 @@ const FlashcardPage: React.FC = () => {
 
   // 从本地存储读取单词数据
   const [wordsData, setWordsData] = useState<FlashcardItem[]>([]);
+  const [filteredWords, setFilteredWords] = useState<FlashcardItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [progress, setProgress] = useState({ total: 0, learned: 0, learning: 0, notLearned: 0, percentage: 0 });
 
   // 设置页面标题和加载数据
@@ -31,6 +33,7 @@ const FlashcardPage: React.FC = () => {
       return statusOrder[a.status] - statusOrder[b.status];
     });
     setWordsData(sortedWords);
+    setFilteredWords(sortedWords);
 
     // 定位到第一个未学会的单词
     const firstUnlearnedIndex = sortedWords.findIndex(word => word.status !== 'learned');
@@ -41,9 +44,31 @@ const FlashcardPage: React.FC = () => {
     setProgress(progressData);
   };
 
+  // 搜索功能
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setFilteredWords(wordsData);
+      return;
+    }
+
+    const lowerQuery = query.toLowerCase();
+    const filtered = wordsData.filter(word => 
+      word.word.toLowerCase().includes(lowerQuery) ||
+      word.meaning.toLowerCase().includes(lowerQuery) ||
+      word.partOfSpeech.toLowerCase().includes(lowerQuery)
+    );
+    setFilteredWords(filtered);
+    
+    // 重置卡片索引
+    if (filtered.length > 0) {
+      setCurrentCardIndex(0);
+    }
+  };
+
   // 获取当前单词
   const getCurrentWord = (): FlashcardItem | undefined => {
-    return wordsData[currentCardIndex];
+    return filteredWords[currentCardIndex];
   };
 
   // 获取词性的英文表示
@@ -320,13 +345,41 @@ const FlashcardPage: React.FC = () => {
               <span>单词列表</span>
             </h3>
           </div>
+
+          {/* 搜索框 */}
+          <div className="mb-4">
+            <div className="relative">
+              <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary"></i>
+              <input
+                type="text"
+                placeholder="搜索单词、释义或词性..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 rounded-lg border border-border-light focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => handleSearch('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              )}
+            </div>
+            {searchQuery && (
+              <p className="text-sm text-text-secondary mt-2">
+                找到 {filteredWords.length} 个结果
+              </p>
+            )}
+          </div>
           
           <div id="word-list" className="bg-white rounded-2xl shadow-card overflow-hidden">
-            {wordsData.map((word, index) => (
+            {filteredWords.length > 0 ? (
+              filteredWords.map((word, index) => (
               <div 
                 key={word.id}
                 id={`word-item-${word.id}`} 
-                className={`${styles.wordItem} p-4 ${index < wordsData.length - 1 ? 'border-b border-border-light' : ''} flex justify-between items-center hover:bg-gray-50 transition-colors cursor-pointer`}
+                className={`${styles.wordItem} p-4 ${index < filteredWords.length - 1 ? 'border-b border-border-light' : ''} flex justify-between items-center hover:bg-gray-50 transition-colors cursor-pointer`}
                 onClick={() => handleWordItemClick(word.id)}
               >
                 <div>
@@ -351,7 +404,14 @@ const FlashcardPage: React.FC = () => {
                   }`}></div>
                 </div>
               </div>
-            ))}
+            ))
+            ) : (
+              <div className="p-8 text-center text-text-secondary">
+                <i className="fas fa-search text-4xl mb-3 opacity-50"></i>
+                <p>没有找到匹配的单词</p>
+                <p className="text-sm mt-1">试试其他关键词</p>
+              </div>
+            )}
           </div>
         </section>
       </main>
