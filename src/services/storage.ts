@@ -36,14 +36,17 @@ const isProduction = import.meta.env.PROD;
 
 // API 调用辅助函数
 async function callStorageAPI(type: 'history' | 'flashcard', action: string, data?: any) {
+  const isGetAction = action === 'getAll';
   const response = await fetch(`/api/storage?type=${type}&action=${action}`, {
-    method: 'POST',
+    method: isGetAction ? 'GET' : 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data || {}),
+    ...(isGetAction ? {} : { body: JSON.stringify(data || {}) }),
   });
   
   if (!response.ok) {
-    throw new Error('Storage API call failed');
+    const errorText = await response.text();
+    console.error('Storage API error:', errorText);
+    throw new Error(`Storage API call failed: ${errorText}`);
   }
   
   return await response.json();

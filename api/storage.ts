@@ -34,6 +34,15 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  // 设置 CORS 头（如果需要）
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   const { action, type } = req.query;
 
   try {
@@ -189,8 +198,15 @@ export default async function handler(
 
   } catch (error) {
     console.error('Storage API error:', error);
+    console.error('Request details:', {
+      method: req.method,
+      type,
+      action,
+      body: req.body
+    });
     return res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Storage operation failed' 
+      error: error instanceof Error ? error.message : 'Storage operation failed',
+      details: error instanceof Error ? error.stack : 'Unknown error'
     });
   }
 }
