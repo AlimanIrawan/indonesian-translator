@@ -136,7 +136,24 @@ const FlashcardPage: React.FC = () => {
     
     const success = await FlashcardService.updateStatus(currentWord.id, newStatus);
     if (success) {
+      const currentWordId = currentWord.id; // 保存当前单词的ID
       await loadWords(); // 重新加载
+      
+      // 重新加载后，找到当前单词的新位置
+      const updatedCards = await FlashcardService.getAll();
+      const sortedWords = [...updatedCards].sort((a, b) => {
+        const statusOrder = { 'not-learned': 0, 'learning': 1, 'learned': 2 };
+        const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+        if (statusDiff !== 0) return statusDiff;
+        return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
+      });
+      
+      // 查找当前单词在新排序中的位置
+      const newIndex = sortedWords.findIndex(word => word.id === currentWordId);
+      if (newIndex !== -1) {
+        setCurrentCardIndex(newIndex);
+      }
+      
       showSuccessToastMessage();
     }
   };
