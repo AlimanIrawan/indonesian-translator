@@ -55,7 +55,53 @@ export default function ImageCropper({ image, onCropComplete, onSkip, onCancel }
     height: 80,
   });
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
+  const [rotation, setRotation] = useState(0); // 旋转角度：0, 90, 180, 270
+  const [rotatedImage, setRotatedImage] = useState(image);
   const imgRef = useRef<HTMLImageElement>(null);
+
+  // 旋转图片
+  const handleRotate = () => {
+    const newRotation = (rotation + 90) % 360;
+    setRotation(newRotation);
+
+    // 创建 canvas 来旋转图片
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // 根据旋转角度调整 canvas 尺寸
+      if (newRotation === 90 || newRotation === 270) {
+        canvas.width = img.height;
+        canvas.height = img.width;
+      } else {
+        canvas.width = img.width;
+        canvas.height = img.height;
+      }
+
+      // 移动到中心点
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      // 旋转
+      ctx.rotate((newRotation * Math.PI) / 180);
+      // 绘制图片（从中心点）
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+      // 转换为 base64
+      const rotatedBase64 = canvas.toDataURL('image/jpeg', 0.95);
+      setRotatedImage(rotatedBase64);
+
+      // 重置裁剪区域
+      setCrop({
+        unit: '%',
+        x: 10,
+        y: 10,
+        width: 80,
+        height: 80,
+      });
+    };
+    img.src = image;
+  };
 
   const handleCropConfirm = () => {
     if (!imgRef.current || !completedCrop) return;
@@ -97,7 +143,7 @@ export default function ImageCropper({ image, onCropComplete, onSkip, onCancel }
         >
           <img
             ref={imgRef}
-            src={image}
+            src={rotatedImage}
             alt="裁剪预览"
             className="max-w-full max-h-full object-contain"
             onLoad={(e) => {
@@ -119,8 +165,21 @@ export default function ImageCropper({ image, onCropComplete, onSkip, onCancel }
       <div className="bg-gray-900 text-white p-4 relative z-10">
         <div className="text-center mb-3">
           <p className="text-sm mb-1">💡 拖动边框或角落调整裁剪区域</p>
-          <p className="text-xs text-gray-400">拖动中间移动裁剪框 · 或直接跳过裁剪</p>
+          <p className="text-xs text-gray-400">拖动中间移动裁剪框 · 点击旋转按钮调整方向 · 或直接跳过裁剪</p>
         </div>
+        
+        {/* 旋转按钮 */}
+        <div className="flex justify-center mb-3">
+          <button
+            onClick={handleRotate}
+            className="flex items-center space-x-2 px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors font-medium"
+          >
+            <i className="fas fa-redo-alt"></i>
+            <span>旋转 90°</span>
+            {rotation > 0 && <span className="text-xs">({rotation}°)</span>}
+          </button>
+        </div>
+
         <div className="flex gap-2 max-w-md mx-auto">
           <button
             onClick={onCancel}
