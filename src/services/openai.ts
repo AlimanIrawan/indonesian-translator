@@ -125,7 +125,7 @@ export const translateIndonesianImage = async (
         },
       ],
       max_tokens: 8000,
-      temperature: 0.6, // 适中的温度，平衡准确性和灵活性
+      temperature: 0.75, // 提高灵活性，减少漏识别
     });
 
     const content = response.choices[0]?.message?.content;
