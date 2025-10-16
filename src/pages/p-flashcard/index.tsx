@@ -29,8 +29,13 @@ const FlashcardPage: React.FC = () => {
   const loadWords = async () => {
     const cards = await FlashcardService.getAll();
     const sortedWords = [...cards].sort((a, b) => {
+      // 首先按学习状态排序
       const statusOrder = { 'not-learned': 0, 'learning': 1, 'learned': 2 };
-      return statusOrder[a.status] - statusOrder[b.status];
+      const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+      if (statusDiff !== 0) return statusDiff;
+      
+      // 同一状态内，按添加时间倒序（最新的在上面）
+      return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
     });
     setWordsData(sortedWords);
     setFilteredWords(sortedWords);
