@@ -96,34 +96,39 @@ const FlashcardPage: React.FC = () => {
     setIsFlashcardFlipped(!isFlashcardFlipped);
   };
 
-  // 上一张卡片（只在未学会的单词中循环）
-  const handlePrevCard = () => {
+  // 随机选择下一张卡片（从所有未学会的单词中随机选择）
+  const getRandomUnlearnedCard = () => {
     const unlearnedWords = wordsData.filter(word => word.status !== 'learned');
-    if (unlearnedWords.length > 0) {
-      const current = getCurrentWord();
-      if (current) {
-        const currentUnlearnedIndex = unlearnedWords.findIndex(word => word.id === current.id);
-        const newUnlearnedIndex = (currentUnlearnedIndex - 1 + unlearnedWords.length) % unlearnedWords.length;
-        const newCardIndex = wordsData.findIndex(word => word.id === unlearnedWords[newUnlearnedIndex].id);
-        setCurrentCardIndex(newCardIndex);
-        setIsFlashcardFlipped(false);
-      }
+    if (unlearnedWords.length === 0) return;
+    
+    const current = getCurrentWord();
+    
+    // 如果只有1个未学会的单词，保持不变
+    if (unlearnedWords.length === 1) {
+      return;
     }
+    
+    // 从未学会的单词中随机选择一个（排除当前单词）
+    let randomWord: FlashcardItem;
+    do {
+      const randomIndex = Math.floor(Math.random() * unlearnedWords.length);
+      randomWord = unlearnedWords[randomIndex];
+    } while (current && randomWord.id === current.id && unlearnedWords.length > 1);
+    
+    // 在完整列表中找到这个随机单词的索引
+    const newCardIndex = wordsData.findIndex(word => word.id === randomWord.id);
+    setCurrentCardIndex(newCardIndex);
+    setIsFlashcardFlipped(false);
   };
 
-  // 下一张卡片（只在未学会的单词中循环）
+  // 上一张卡片（随机显示）
+  const handlePrevCard = () => {
+    getRandomUnlearnedCard();
+  };
+
+  // 下一张卡片（随机显示）
   const handleNextCard = () => {
-    const unlearnedWords = wordsData.filter(word => word.status !== 'learned');
-    if (unlearnedWords.length > 0) {
-      const current = getCurrentWord();
-      if (current) {
-        const currentUnlearnedIndex = unlearnedWords.findIndex(word => word.id === current.id);
-        const newUnlearnedIndex = (currentUnlearnedIndex + 1) % unlearnedWords.length;
-        const newCardIndex = wordsData.findIndex(word => word.id === unlearnedWords[newUnlearnedIndex].id);
-        setCurrentCardIndex(newCardIndex);
-        setIsFlashcardFlipped(false);
-      }
-    }
+    getRandomUnlearnedCard();
   };
 
   // 标记单词学习状态
@@ -136,23 +141,12 @@ const FlashcardPage: React.FC = () => {
     
     const success = await FlashcardService.updateStatus(currentWord.id, newStatus);
     if (success) {
-      const currentWordId = currentWord.id; // 保存当前单词的ID
       await loadWords(); // 重新加载
       
-      // 重新加载后，找到当前单词的新位置
-      const updatedCards = await FlashcardService.getAll();
-      const sortedWords = [...updatedCards].sort((a, b) => {
-        const statusOrder = { 'not-learned': 0, 'learning': 1, 'learned': 2 };
-        const statusDiff = statusOrder[a.status] - statusOrder[b.status];
-        if (statusDiff !== 0) return statusDiff;
-        return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
-      });
-      
-      // 查找当前单词在新排序中的位置
-      const newIndex = sortedWords.findIndex(word => word.id === currentWordId);
-      if (newIndex !== -1) {
-        setCurrentCardIndex(newIndex);
-      }
+      // 标记后随机选择一个未学会的单词
+      setTimeout(() => {
+        getRandomUnlearnedCard();
+      }, 100); // 给一点延迟确保数据已更新
       
       showSuccessToastMessage();
     }
