@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>印尼语 TTS 测试</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .test-item {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+    }
+    .test-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .word {
+      font-size: 28px;
+      font-weight: bold;
+      color: #4F6FFF;
+      margin-bottom: 8px;
+    }
+    .meaning {
+      color: #666;
+      margin-bottom: 12px;
+    }
+    button {
+      background: #4F6FFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+    button:active {
+      transform: scale(0.98);
+      background: #3d5ae0;
+    }
+    .status {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+    .status.show {
+      display: block;
+    }
+    .status.success {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .status.error {
+      background: #ffebee;
+      color: #c62828;
+    }
+    .status.info {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+    .info-box {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: #856404;
+    }
+    .long-text {
+      background: #f5f5f5;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🎤 印尼语 TTS 测试</h1>
+    <p class="subtitle">测试浏览器原生语音合成（Web Speech API）</p>
+    
+    <div class="info-box">
+      <strong>📱 使用说明：</strong><br>
+      1. 在 iPhone Safari 或 Chrome 中打开此页面<br>
+      2. 点击下方按钮测试发音<br>
+      3. 对比单词和长文本的发音质量<br>
+      4. 反馈给我你的听感 ✨
+    </div>
+
+    <div class="test-item">
+      <h3>测试 1：单个单词</h3>
+      <div class="word">keluarga</div>
+      <div class="meaning">家庭</div>
+      <button onclick="speakWord('keluarga', 1)">
+        <span>🔊</span>
+        <span>播放单词发音</span>
+      </button>
+      <div id="status-1" class="status"></div>
+    </div>
+
+    <div class="test-item">
+      <h3>测试 2：多个单词</h3>
+      <div class="word">rumah</div>
+      <div class="meaning">房子</div>
+      <button onclick="speakWord('rumah', 2)">
+        <span>🔊</span>
+        <span>播放单词发音</span>
+      </button>
+      <div id="status-2" class="status"></div>
+    </div>
+
+    <div class="test-item">
+      <h3>测试 3：短句子</h3>
+      <div class="long-text" style="max-height: 50px;">
+        Selamat pagi, apa kabar?
+      </div>
+      <button onclick="speakWord('Selamat pagi, apa kabar?', 3)">
+        <span>🔊</span>
+        <span>播放句子发音</span>
+      </button>
+      <div id="status-3" class="status"></div>
+    </div>
+
+    <div class="test-item">
+      <h3>测试 4：长段落（你的实际文本）</h3>
+      <div class="long-text">
+        Serangan Balik kepada Portugis. Terdapat upaya untuk meruntuhkan dua abad hegemoni Portugis di Malaka. Hal ini dilakukan oleh beberapa kerajaan dari Nusantara. Tercatat beberapa serangan diberikan oleh Demak (1512, 1513, dan 1535); Johor (1518 dan 1585); Aceh (1537, 1547, 1568, 1572, 1575, 1583, 1615, 1629, dan 1639); Jepara (1551 dan 1574), dan Gabungan pasukan Johor dan Belanda (1606 dan 1640-1).
+      </div>
+      <button onclick="speakLongText(4)">
+        <span>🔊</span>
+        <span>播放长段落发音</span>
+      </button>
+      <div id="status-4" class="status"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🔍 系统信息</h3>
+    <div id="system-info" style="font-size: 14px; color: #666;"></div>
+  </div>
+
+  <script>
+    // 检测浏览器支持
+    function checkSupport() {
+      const info = document.getElementById('system-info');
+      if ('speechSynthesis' in window) {
+        info.innerHTML = `
+          ✅ 浏览器支持 Web Speech API<br>
+          📱 设备：${navigator.userAgent.includes('iPhone') ? 'iPhone' : navigator.userAgent.includes('Android') ? 'Android' : '桌面浏览器'}<br>
+          🌐 浏览器：${navigator.userAgent.includes('Safari') ? 'Safari' : navigator.userAgent.includes('Chrome') ? 'Chrome' : '其他'}
+        `;
+        
+        // 列出可用的语音
+        speechSynthesis.onvoiceschanged = () => {
+          const voices = speechSynthesis.getVoices();
+          const indonesianVoices = voices.filter(v => v.lang.startsWith('id'));
+          
+          if (indonesianVoices.length > 0) {
+            info.innerHTML += `<br>✅ 找到 ${indonesianVoices.length} 个印尼语语音包`;
+            indonesianVoices.forEach(v => {
+              info.innerHTML += `<br>　　- ${v.name} (${v.lang})`;
+            });
+          } else {
+            info.innerHTML += `<br>⚠️ 未找到印尼语语音包，将使用默认语音`;
+          }
+        };
+      } else {
+        info.innerHTML = '❌ 浏览器不支持 Web Speech API';
+      }
+    }
+
+    // 播放语音
+    function speakWord(text, testId) {
+      const statusEl = document.getElementById(`status-${testId}`);
+      
+      // 停止当前播放
+      speechSynthesis.cancel();
+      
+      // 显示加载状态
+      statusEl.className = 'status show info';
+      statusEl.textContent = '⏳ 正在准备语音...';
+      
+      try {
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // 设置印尼语
+        utterance.lang = 'id-ID';
+        
+        // 尝试选择印尼语语音
+        const voices = speechSynthesis.getVoices();
+        const indonesianVoice = voices.find(v => v.lang.startsWith('id'));
+        if (indonesianVoice) {
+          utterance.voice = indonesianVoice;
+        }
+        
+        // 设置语音参数
+        utterance.rate = 0.9; // 稍慢一点，更清晰
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        
+        // 开始播放
+        utterance.onstart = () => {
+          statusEl.className = 'status show success';
+          statusEl.textContent = '▶️ 正在播放...';
+        };
+        
+        // 播放结束
+        utterance.onend = () => {
+          statusEl.className = 'status show success';
+          statusEl.textContent = '✅ 播放完成';
+          setTimeout(() => {
+            statusEl.className = 'status';
+          }, 2000);
+        };
+        
+        // 错误处理
+        utterance.onerror = (event) => {
+          statusEl.className = 'status show error';
+          statusEl.textContent = `❌ 错误：${event.error}`;
+        };
+        
+        speechSynthesis.speak(utterance);
+        
+      } catch (error) {
+        statusEl.className = 'status show error';
+        statusEl.textContent = `❌ 错误：${error.message}`;
+      }
+    }
+
+    // 播放长文本
+    function speakLongText(testId) {
+      const longText = `Serangan Balik kepada Portugis. Terdapat upaya untuk meruntuhkan dua abad hegemoni Portugis di Malaka. Hal ini dilakukan oleh beberapa kerajaan dari Nusantara. Tercatat beberapa serangan diberikan oleh Demak (1512, 1513, dan 1535); Johor (1518 dan 1585); Aceh (1537, 1547, 1568, 1572, 1575, 1583, 1615, 1629, dan 1639); Jepara (1551 dan 1574), dan Gabungan pasukan Johor dan Belanda (1606 dan 1640-1). Portugis melihat Aceh sebagai rival yang paling berbahaya.`;
+      speakWord(longText, testId);
+    }
+
+    // 页面加载时检测支持
+    checkSupport();
+    
+    // 确保语音列表加载
+    if ('speechSynthesis' in window) {
+      speechSynthesis.getVoices();
+    }
+  </script>
+</body>
+</html>
+
