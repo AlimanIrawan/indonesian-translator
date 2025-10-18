@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './styles.module.css';
 import { FlashcardService, type FlashcardItem } from '../../services/storage';
+import { useSpeech } from '../../hooks/useSpeech';
 
 const FlashcardPage: React.FC = () => {
   const [isFlashcardFlipped, setIsFlashcardFlipped] = useState(false);
@@ -16,6 +17,9 @@ const FlashcardPage: React.FC = () => {
   const [filteredWords, setFilteredWords] = useState<FlashcardItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [progress, setProgress] = useState({ total: 0, learned: 0, learning: 0, notLearned: 0, percentage: 0 });
+
+  // 语音功能
+  const { speak, isSpeaking } = useSpeech();
 
   // 设置页面标题和加载数据
   useEffect(() => {
@@ -292,7 +296,19 @@ const FlashcardPage: React.FC = () => {
                 <div id="word-tags" className="mb-4">
                   <span className={styles.wordTag}>{currentWord?.partOfSpeech}</span>
                 </div>
-                <h3 id="indonesian-word" className="text-3xl font-bold text-text-primary">{currentWord?.word.toLowerCase()}</h3>
+                <div className="flex items-center justify-center gap-4">
+                  <h3 id="indonesian-word" className="text-3xl font-bold text-text-primary">{currentWord?.word.toLowerCase()}</h3>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (currentWord) speak(currentWord.word);
+                    }}
+                    className={`text-primary hover:text-blue-700 transition-colors text-2xl ${isSpeaking ? 'animate-pulse' : ''}`}
+                    title="朗读单词"
+                  >
+                    <i className="fas fa-volume-up"></i>
+                  </button>
+                </div>
               </div>
               
               {/* 卡片背面（中文翻译和解析） */}
@@ -406,6 +422,16 @@ const FlashcardPage: React.FC = () => {
                   <p className="text-text-secondary text-sm">{word.meaning}</p>
                 </div>
                 <div className="flex items-center space-x-3">
+                  <button 
+                    className={`text-primary hover:text-blue-700 transition-colors p-1 ${isSpeaking ? 'animate-pulse' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      speak(word.word);
+                    }}
+                    title="朗读单词"
+                  >
+                    <i className="fas fa-volume-up"></i>
+                  </button>
                   <button 
                     id={`delete-word-${word.id}-btn`} 
                     className="text-text-secondary hover:text-danger transition-colors p-1"

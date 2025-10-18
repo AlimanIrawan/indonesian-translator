@@ -6,6 +6,7 @@ import styles from './styles.module.css';
 import { translateIndonesianImage, type WordParse, type TranslationResult } from '../../services/openai';
 import { HistoryService, FlashcardService } from '../../services/storage';
 import ImageCropper from '../../components/ImageCropper';
+import { useSpeech } from '../../hooks/useSpeech';
 
 const HomePage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -27,6 +28,9 @@ const HomePage: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  // 语音功能
+  const { speak, isSpeaking } = useSpeech();
 
   useEffect(() => {
     const originalTitle = document.title;
@@ -445,12 +449,22 @@ const HomePage: React.FC = () => {
                   <i className="fas fa-language text-secondary"></i>
                   <span>印尼语原文</span>
                 </h3>
-                <button 
-                  onClick={() => copyToClipboard(indonesianText)}
-                  className="text-primary hover:text-blue-700 transition-colors"
-                >
-                  <i className="fas fa-copy"></i>
-                </button>
+                <div className="flex items-center space-x-3">
+                  <button 
+                    onClick={() => speak(indonesianText)}
+                    className={`text-primary hover:text-blue-700 transition-colors ${isSpeaking ? 'animate-pulse' : ''}`}
+                    title="朗读印尼语原文"
+                  >
+                    <i className={`fas ${isSpeaking ? 'fa-volume-up' : 'fa-volume-up'}`}></i>
+                  </button>
+                  <button 
+                    onClick={() => copyToClipboard(indonesianText)}
+                    className="text-primary hover:text-blue-700 transition-colors"
+                    title="复制原文"
+                  >
+                    <i className="fas fa-copy"></i>
+                  </button>
+                </div>
               </div>
               <div className="text-text-primary leading-relaxed whitespace-pre-wrap select-text" style={{ userSelect: 'text', WebkitUserSelect: 'text' }}>
                 {indonesianText}
@@ -499,13 +513,22 @@ const HomePage: React.FC = () => {
               <div className="space-y-4">
                 {wordParses.length > 0 ? (
                   wordParses.map((word, index) => (
-                    <div key={index} className="border-l-4 border-primary pl-4 py-2 bg-blue-50 rounded-r-lg">
-                      <div className="font-semibold text-text-primary">{word.word}</div>
-                      <div className="text-sm text-text-secondary mt-1">
-                        <span className="block">意思：{word.meaning}</span>
-                        <span className="block">词性：{word.partOfSpeech}</span>
-                        <span className="block">词根：{word.root}</span>
+                    <div key={index} className="border-l-4 border-primary pl-4 py-2 bg-blue-50 rounded-r-lg flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="font-semibold text-text-primary">{word.word}</div>
+                        <div className="text-sm text-text-secondary mt-1">
+                          <span className="block">意思：{word.meaning}</span>
+                          <span className="block">词性：{word.partOfSpeech}</span>
+                          <span className="block">词根：{word.root}</span>
+                        </div>
                       </div>
+                      <button 
+                        onClick={() => speak(word.word)}
+                        className={`ml-3 text-primary hover:text-blue-700 transition-colors flex-shrink-0 ${isSpeaking ? 'animate-pulse' : ''}`}
+                        title="朗读单词"
+                      >
+                        <i className="fas fa-volume-up"></i>
+                      </button>
                     </div>
                   ))
                 ) : (

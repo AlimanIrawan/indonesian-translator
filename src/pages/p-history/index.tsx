@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './styles.module.css';
 import { HistoryService, type HistoryItem } from '../../services/storage';
+import { useSpeech } from '../../hooks/useSpeech';
 
 const HistoryPage: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -17,6 +18,9 @@ const HistoryPage: React.FC = () => {
 
   const itemsPerPage = 10;
   const totalPages = Math.ceil(historyItems.length / itemsPerPage);
+
+  // 语音功能
+  const { speak, isSpeaking } = useSpeech();
 
   // 加载历史记录
   useEffect(() => {
@@ -217,14 +221,23 @@ const HistoryPage: React.FC = () => {
                 </div>
                 <div className="flex space-x-2">
                   <button 
+                    onClick={() => speak(item.indonesian)}
+                    className={`text-primary hover:text-blue-700 transition-colors p-1 ${isSpeaking ? 'animate-pulse' : ''}`}
+                    title="朗读印尼语"
+                  >
+                    <i className="fas fa-volume-up"></i>
+                  </button>
+                  <button 
                     onClick={() => handleViewHistoryItem(item.id)}
                     className="text-primary hover:text-blue-700 transition-colors p-1"
+                    title="查看原文"
                   >
                     <i className="fas fa-eye"></i>
                   </button>
                   <button 
                     onClick={() => handleDeleteHistoryItem(item.id)}
                     className="text-text-secondary hover:text-danger transition-colors p-1"
+                    title="删除记录"
                   >
                     <i className="fas fa-trash-alt"></i>
                   </button>
